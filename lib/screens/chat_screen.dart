@@ -14,7 +14,7 @@ class ChatScreen extends StatelessWidget {
         stream: FirebaseFirestore.instance
             .collection('chats/NMfsoWaen8a7TARzk6x2/messages')
             .snapshots(),
-        builder: (context, AsyncSnapshot<QuerySnapshot> streamSnapshot) {
+        builder: (context, streamSnapshot) {
           //builder function is RE EXCECUTED whatever the steam gives us a new value
           if (streamSnapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -22,19 +22,22 @@ class ChatScreen extends StatelessWidget {
             );
           }
           final documents = streamSnapshot.data.docs;
-          print("text = " + documents.length.toString());
           return ListView.builder(
             itemCount: documents.length,
             itemBuilder: (context, index) => Container(
               padding: EdgeInsets.all(8),
-              child: Text(documents[index]["index"]),
+              child: Text(documents[index]["text"]),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () {},
+        onPressed: () {
+          FirebaseFirestore.instance
+              .collection("chats/NMfsoWaen8a7TARzk6x2/messages")
+              .add({"text": "this was added by clicking the button"});
+        },
       ),
     );
   }
