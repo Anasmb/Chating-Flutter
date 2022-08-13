@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
 
 class AuthForm extends StatefulWidget {
-  const AuthForm({Key key}) : super(key: key);
+  final void Function({
+    String email,
+    String password,
+    String username,
+    bool isLogin,
+    BuildContext ctx,
+  }) submitFun;
+  //final Function submitFun;
+  final bool isLoading;
+  AuthForm(
+    this.submitFun,
+    this.isLoading,
+  );
 
   @override
   State<AuthForm> createState() => _AuthFormState();
@@ -22,6 +34,13 @@ class _AuthFormState extends State<AuthForm> {
       //if all validator return null
       _formKey.currentState
           .save(); //trigger all the onSaved in the text form fields
+      widget.submitFun(
+        email: _userEmail.trim(), //trim remove any space
+        password: _userPassword,
+        username: _userName,
+        isLogin: _isLogin,
+        ctx: context,
+      );
     }
   }
 
@@ -40,6 +59,7 @@ class _AuthFormState extends State<AuthForm> {
                     .min, // to make sure the column only take hight as much as needed
                 children: [
                   TextFormField(
+                    key: ValueKey("email"),
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(labelText: "Email address"),
                     validator: (value) {
@@ -54,6 +74,7 @@ class _AuthFormState extends State<AuthForm> {
                   ),
                   if (!_isLogin)
                     TextFormField(
+                      key: ValueKey("username"),
                       onSaved: (value) {
                         _userName = value;
                       },
@@ -66,6 +87,7 @@ class _AuthFormState extends State<AuthForm> {
                       decoration: InputDecoration(labelText: "Username"),
                     ),
                   TextFormField(
+                    key: ValueKey("password"),
                     onSaved: (value) {
                       _userPassword = value;
                     },
@@ -81,22 +103,25 @@ class _AuthFormState extends State<AuthForm> {
                   SizedBox(
                     height: 12,
                   ),
-                  RaisedButton(
-                    child: Text(_isLogin ? "Login" : "Signup"),
-                    onPressed: _trySubmit,
-                  ),
-                  FlatButton(
-                    textColor: Theme.of(context).primaryColor,
-                    onPressed: () {
-                      setState(() {
-                        //update UI
-                        _isLogin = !_isLogin;
-                      });
-                    },
-                    child: Text(_isLogin
-                        ? "Create new account"
-                        : "I already have an account"),
-                  ),
+                  if (widget.isLoading) CircularProgressIndicator(),
+                  if (!widget.isLoading)
+                    RaisedButton(
+                      child: Text(_isLogin ? "Login" : "Signup"),
+                      onPressed: _trySubmit,
+                    ),
+                  if (!widget.isLoading)
+                    FlatButton(
+                      textColor: Theme.of(context).primaryColor,
+                      onPressed: () {
+                        setState(() {
+                          //update UI
+                          _isLogin = !_isLogin;
+                        });
+                      },
+                      child: Text(_isLogin
+                          ? "Create new account"
+                          : "I already have an account"),
+                    ),
                 ],
               ),
             ),
