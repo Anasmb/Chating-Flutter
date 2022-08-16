@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_complete_guide/widgets/auth/auth_form.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key key}) : super(key: key);
@@ -19,6 +21,7 @@ class _AuthScreenState extends State<AuthScreen> {
       {String email,
       String username,
       String password,
+      File userImage,
       bool isLogin,
       BuildContext ctx}) async {
     UserCredential userCredential;
@@ -37,12 +40,23 @@ class _AuthScreenState extends State<AuthScreen> {
           password: password,
         );
       }
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child("user_image")
+          .child(userCredential.user.uid + ".jpg");
+
+      var url;
+      await ref.putFile(userImage).whenComplete(() async {
+        print("image uploaded successfully");
+        url = await ref.getDownloadURL();
+      });
       await FirebaseFirestore.instance
           .collection("users")
           .doc(userCredential.user.uid)
           .set({
         "username": username,
         "email": email,
+        "image_url": url,
       });
 
       //platform exception is firebase exception
@@ -58,10 +72,12 @@ class _AuthScreenState extends State<AuthScreen> {
           backgroundColor: Theme.of(ctx).errorColor,
         ),
       );
+      setState(() {
+        _isLoading = false;
+      });
     } catch (error) {
       print("oh no, an error occurred");
       print(error);
-    } finally {
       setState(() {
         _isLoading = false;
       });
